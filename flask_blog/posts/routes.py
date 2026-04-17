@@ -1,4 +1,8 @@
-from flask import Blueprint
+from flask import render_template, url_for, redirect, flash, request, abort,  Blueprint
+from flask_blog import db
+from flask_blog.posts.forms import PostForm
+from flask_blog.models import Post
+from flask_login import current_user, login_required
 
 posts = Blueprint('posts', __name__)
 
@@ -11,7 +15,7 @@ def new_post():
         db.session.add(post)
         db.session.commit()
         flash('Your post has been created!', 'success')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     return render_template('create_post.html', title='New Post', form=form, legend='New Post') 
 
 @posts.route("/post/<int:post_id>", methods=['GET', 'POST'])
@@ -32,7 +36,7 @@ def update_post(post_id):
         post.content = form.content.data
         db.session.commit()
         flash('Your post has been updated!', 'success')
-        return redirect(url_for('post', post_id=post.id))
+        return redirect(url_for('posts.post', post_id=post.id))
     elif request.method == 'GET':
         form.title.data = post.title
         form.content.data = post.content
@@ -47,4 +51,4 @@ def delete_post(post_id):
     db.session.delete(post)
     db.session.commit()
     flash('Your post has been deleted!', 'success')
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
