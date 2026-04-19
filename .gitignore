@@ -2,3 +2,9 @@ venv/
 __pycache__/
 .env
 flask_blog/__pycache__
+flask_blog/errors/__pycache__
+flask_blog/users/__pycache__
+flask_blog/posts/__pycache__
+flask_blog/main/__pycache__
+migrations/__pycache__
+migrations/versions/__pycache__
