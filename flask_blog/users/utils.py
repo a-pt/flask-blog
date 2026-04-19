@@ -1,5 +1,6 @@
 import secrets
 import os
+from typing import Optional
 from PIL import Image
 from flask import url_for, current_app
 from flask_mail import Message
@@ -7,7 +8,7 @@ from flask_blog import mail
 from supabase import create_client, Client
 from io import BytesIO
 
-def _get_supabase_client() -> Client | None:
+def _get_supabase_client() -> Optional[Client]:
     url = os.getenv('SUPABASE_URL')
     key = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
     if url and key:
