@@ -47,7 +47,7 @@ def save_picture(form_picture):
         buf.seek(0)
         bucket = os.getenv('SUPABASE_BUCKET')
         supabase_url = os.getenv('SUPABASE_URL')
-        storage_path = f'profile_pics/{picture_fn}'
+        storage_path = picture_fn
         res = supabase.storage.from_(bucket).upload(storage_path, buf.read(), {
             "content-type": f'image/{f_ext.lstrip(".").lower()}',
             "upsert": "true",

@@ -15,7 +15,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)
-    image_url = db.Column(db.String(255), nullable=True, default=os.getenv("SUPABASE_URL") + "/storage/v1/object/public/" + os.getenv("SUPABASE_BUCKET") + "/profile_pics/default.jpeg")
+    image_url = db.Column(db.String(255), nullable=True, default=os.getenv("SUPABASE_URL") + "/storage/v1/object/public/" + os.getenv("SUPABASE_BUCKET") + "default.jpeg")
 
     def get_reset_token(self):
         s = Serializer(current_app.config['SECRET_KEY'])
