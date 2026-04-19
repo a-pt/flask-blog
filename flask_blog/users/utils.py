@@ -20,6 +20,21 @@ def save_picture(form_picture):
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_fn = random_hex + f_ext
 
+    try:
+        form_picture.stream.seek(0)
+    except Exception:
+        pass
+
+    try:
+        image = Image.open(form_picture)
+        image.verify()          # checks the header only
+        # Re‑open after verify because verify() may close the file
+        form_picture.stream.seek(0)
+        image = Image.open(form_picture)
+    except Exception as e:
+        raise ValueError("Uploaded file is not a valid image.") from e
+
+
     output_size = (125, 125)
     image = Image.open(form_picture)
     image.thumbnail(output_size)
@@ -31,21 +46,22 @@ def save_picture(form_picture):
         image.save(buf, format=image.format or 'PNG')
         buf.seek(0)
         bucket = os.getenv('SUPABASE_BUCKET')
+        supabase_url = os.getenv('SUPABASE_URL')
         storage_path = f'profile_pics/{picture_fn}'
         res = supabase.storage.from_(bucket).upload(storage_path, buf.read(), {
             "content-type": f'image/{f_ext.lstrip(".").lower()}',
-            "upsert": True,
+            "upsert": "true",
         })
-        if res.get('error'):
-            current_app.logger.error(f"Supabase upload failed: {res['error']}")
-        else:
-            public_url = supabase.storage.from_(bucket).get_public_url(storage_path)
-            return public_url.get('publicURL')
-    
-    picture_path = os.path.join(current_app.root_path, 'static/profile_pics', picture_fn)
-    image.save(picture_path)
-
-    return picture_fn
+        
+        # Parse the response
+        result = res.json()
+        if result.get('error'):
+            # Log the error and fall back to local storage
+            current_app.logger.error(f"Supabase upload failed: {result['error']}")
+        
+        # Build the public URL for the uploaded file
+        public_url = f"{supabase_url}/storage/v1/object/public/{bucket}/{storage_path}"
+        return public_url
 
 def send_reset_email(user):
     token = user.get_reset_token()

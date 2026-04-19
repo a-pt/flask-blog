@@ -1,3 +1,4 @@
+import os
 from flask import current_app
 from flask_blog import db, login_manager
 from datetime import datetime
@@ -12,10 +13,9 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='default.jpeg')
     password = db.Column(db.String(60), nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)
-    image_url = db.Column(db.String(255), nullable=True)
+    image_url = db.Column(db.String(255), nullable=True, default=os.getenv("SUPABASE_URL") + "/storage/v1/object/public/" + os.getenv("SUPABASE_BUCKET") + "/profile_pics/default.jpeg")
 
     def get_reset_token(self):
         s = Serializer(current_app.config['SECRET_KEY'])
@@ -31,7 +31,7 @@ class User(db.Model, UserMixin):
         return User.query.get(user_id)
 
     def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
+        return f"User('{self.username}', '{self.email}', '{self.image_url}')"
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)

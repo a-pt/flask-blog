@@ -47,17 +47,10 @@ def logout():
 @login_required
 def account():
     form = UpdateAccountForm()
-    image_url = None
-    image_file = 'default.jpeg'
     if form.validate_on_submit():
         if form.picture.data:
             picture_file = save_picture(form.picture.data)
-            if picture_file.startswith('http'):
-                current_user.image_url = picture_file
-                image_url = current_user.image_url
-            else:
-                current_user.image_file = picture_file
-                image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+            current_user.image_url = picture_file
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
@@ -66,7 +59,8 @@ def account():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
-    return render_template("account.html",title="Account",image_url=image_url, image_file=image_file, form=form)
+    image_url = current_user.image_url
+    return render_template("account.html",title="Account",image_url=image_url, form=form)
 
 @users.route("/user/<string:username>")
 def user_posts(username):
