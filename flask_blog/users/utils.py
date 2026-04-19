@@ -25,28 +25,23 @@ def save_picture(form_picture):
     image.thumbnail(output_size)
 
     supabase = _get_supabase_client()
+    
     if supabase:
-        bucket_name = os.getenv('SUPABASE_BUCKET')
-        try:
-            img_byte_arr = BytesIO()
-            image.save(img_byte_arr, format=image.format or 'PNG')
-            img_byte_arr = img_byte_arr.getvalue()
-
-            supabase.storage.from_(bucket_name).upload(
-                path=f'profile_pics/{picture_fn}',
-                file=img_byte_arr,
-                content_type=f'image/{image.format or "PNG"}'
-            )
-
-            # Get the public URL
-            public_url = supabase.storage.from_(bucket_name).get_public_url(f'profile_pics/{picture_fn}')
-            return public_url
-        except Exception as e:
-            current_app.logger.error(f"Error uploading profile picture to Supabase: {e}")
-            # Fallback to local storage if Supabase upload fails
-            pass
-
-    # Fallback to local storage if Supabase is not configured or upload fails
+        buf = BytesIO()
+        image.save(buf, format=image.format or 'PNG')
+        buf.seek(0)
+        bucket = os.getenv('SUPABASE_BUCKET')
+        storage_path = f'profile_pics/{picture_fn}'
+        res = supabase.storage.from_(bucket).upload(storage_path, buf.read(), {
+            "content-type": f'image/{f_ext.lstrip(".").lower()}',
+            "upsert": True,
+        })
+        if res.get('error'):
+            current_app.logger.error(f"Supabase upload failed: {res['error']}")
+        else:
+            public_url = supabase.storage.from_(bucket).get_public_url(storage_path)
+            return public_url.get('publicURL')
+    
     picture_path = os.path.join(current_app.root_path, 'static/profile_pics', picture_fn)
     image.save(picture_path)
 
