@@ -48,7 +48,7 @@ def logout():
 def account():
     form = UpdateAccountForm()
     image_url = None
-    image_file = None
+    image_file = 'default.jpeg'
     if form.validate_on_submit():
         if form.picture.data:
             picture_file = save_picture(form.picture.data)
